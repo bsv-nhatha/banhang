@@ -37,14 +37,14 @@ export const sendBookingConfirmationEmail = async (userEmail: string, details: B
       ${message ? `<li><strong>Ghi chú:</strong> ${message}</li>` : ''}
     </ul>
     <p>Chúng tôi rất mong được phục vụ bạn.</p>
-    <p>Trân trọng,<br>Nhà hàng ABC</p>
+    <p>Trân trọng,<br>Nhà hàng Le68</p>
   `;
 
   // Các tùy chọn cho email
   const mailOptions = {
-    from: `"Nhà hàng ABC" <${process.env.EMAIL_USER}>`,
+    from: `"Nhà hàng Le68" <${process.env.EMAIL_USER}>`,
     to: userEmail,
-    subject: 'Xác nhận Đặt bàn tại Nhà hàng ABC',
+    subject: 'Xác nhận Đặt bàn tại Nhà hàng Le68',
     html: htmlContent, 
   };
 

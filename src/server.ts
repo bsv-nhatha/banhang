@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import 'dotenv/config';
 import cors from 'cors';
+import path from 'path';
 
 // Import các routes
 import adminRoutes from './routes/admin.routes';
@@ -13,6 +14,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors())
+
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Chào mừng đến với API Nhà hàng (TypeScript Version).' });

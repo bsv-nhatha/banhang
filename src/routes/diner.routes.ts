@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post('/create', dinerController.createDinerFromUser);
 router.get('/', dinerController.getAllDiners);
+router.get('/:id', dinerController.getDinerById);
 
 export default router;
