@@ -79,6 +79,32 @@ class AdminController {
         return res.status(400).json({ message: 'File upload không phải là định dạng hình ảnh hợp lệ.' });
       }
 
+      try {
+        const uploadsDir = path.join(__dirname, '../../public/uploads');
+        const filesInDir = await fs.readdir(uploadsDir);
+
+        if (filesInDir.length > 1) {
+          const fileDetails = await Promise.all(
+            filesInDir.map(async (f) => {
+              const filePath = path.join(uploadsDir, f);
+              const stats = await fs.stat(filePath);
+              return { name: f, mtime: stats.mtime };
+            })
+          );
+          
+          // Sắp xếp file theo thời gian, mới nhất lên đầu
+          fileDetails.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+
+          const oldFileToDelete = fileDetails[1].name;
+          await fs.unlink(path.join(uploadsDir, oldFileToDelete));
+          console.log(`Đã xóa file cũ thành công: ${oldFileToDelete}`);
+        }
+      } catch (deleteError) {
+        // Nếu có lỗi khi xóa file cũ, chỉ cần ghi log và bỏ qua
+        // Không làm ảnh hưởng đến kết quả upload thành công của file mới
+        console.error('Không thể xóa file cũ:', deleteError);
+      }
+
       // Nếu kích thước hợp lệ, tiếp tục xử lý
       const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
 
