@@ -19,7 +19,13 @@ interface BookingDetails {
   message?: string;
 }
 
-export const sendBookingConfirmationEmail = async (userEmail: string, details: BookingDetails) => {
+export const sendBookingConfirmationEmail = async (userEmail: string, details: {
+  userName: string;
+  booking_date: string;
+  time: string;
+  number_of_guest: number;
+  message: string | undefined
+}) => {
   const { userName, booking_date, time, number_of_guest, message } = details;
 
   // Định dạng lại ngày giờ cho thân thiện hơn
@@ -49,8 +55,8 @@ export const sendBookingConfirmationEmail = async (userEmail: string, details: B
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email đã được gửi thành công: %s', info.messageId);
+    // const info = await transporter.sendMail(mailOptions);
+    // console.log('Email đã được gửi thành công: %s', info.messageId);
   } catch (error) {
     console.error('Lỗi khi gửi email:', error);
     throw new Error('Không thể gửi email xác nhận.');
