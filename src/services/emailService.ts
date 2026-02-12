@@ -19,13 +19,7 @@ interface BookingDetails {
   message?: string;
 }
 
-export const sendBookingConfirmationEmail = async (userEmail: string, details: {
-  userName: string;
-  booking_date: string;
-  time: string;
-  number_of_guest: number;
-  message: string | undefined
-}) => {
+export const sendBookingConfirmationEmail = async (userEmail: string, details: BookingDetails) => {
   const { userName, booking_date, time, number_of_guest, message } = details;
 
   // Định dạng lại ngày giờ cho thân thiện hơn

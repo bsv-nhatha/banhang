@@ -20,11 +20,11 @@ async function testEmail() {
 
     try {
         await sendBookingConfirmationEmail(recipientEmail, {
-          userName: 'Test User',
-          time: '19:00',
-          booking_date: new Date().toISOString(),
-          number_of_guest: '2',
-          message: 'Đây là email kiểm tra hệ thống.',
+            userName: 'Test User',
+            time: '19:00',
+            booking_date: new Date().toISOString(),
+            number_of_guest: '2',
+            message: 'Đây là email kiểm tra hệ thống.',
         });
         console.log('✅ Gửi email thành công! Hãy kiểm tra hộp thư đến của bạn.');
     } catch (error) {
