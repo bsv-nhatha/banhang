@@ -29,7 +29,10 @@ class AdminController {
         return res.status(401).json({ message: 'Username hoặc password không chính xác.' });
       }
 
-      const jwtSecret = process.env.JWT_SECRET || 'your_default_secret_key';
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ code: 500, message: 'Lỗi cấu hình server.' });
+      }
       const token = jwt.sign(
         { id: admin.id, username: admin.username },
         jwtSecret,
@@ -43,7 +46,8 @@ class AdminController {
       });
 
     } catch (error) {
-      return res.status(500).json({ code: 500, message: 'Lỗi server', error: (error as Error).message });
+      console.error('[LOGIN_ERROR]', error);
+      return res.status(500).json({ code: 500, message: 'Lỗi server.' });
     }
   }
   public uploadImage = async (req: Request, res: Response): Promise<Response> => {
@@ -91,17 +95,20 @@ class AdminController {
               return { name: f, mtime: stats.mtime };
             })
           );
-          
+
           // Sắp xếp file theo thời gian, mới nhất lên đầu
           fileDetails.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
 
-          const oldFileToDelete = fileDetails[1].name;
-          await fs.unlink(path.join(uploadsDir, oldFileToDelete));
-          console.log(`Đã xóa file cũ thành công: ${oldFileToDelete}`);
+          // Xóa tất cả file cũ (chỉ giữ lại file mới nhất ở index 0)
+          const filesToDelete = fileDetails.slice(1);
+          await Promise.all(
+            filesToDelete.map(async (f) => {
+              await fs.unlink(path.join(uploadsDir, f.name));
+              console.log(`Đã xóa file cũ thành công: ${f.name}`);
+            })
+          );
         }
       } catch (deleteError) {
-        // Nếu có lỗi khi xóa file cũ, chỉ cần ghi log và bỏ qua
-        // Không làm ảnh hưởng đến kết quả upload thành công của file mới
         console.error('Không thể xóa file cũ:', deleteError);
       }
 
@@ -115,7 +122,8 @@ class AdminController {
 
     } catch (error) {
       // Bắt các lỗi chung khác
-      return res.status(500).json({ message: 'Lỗi server khi upload file.', error: (error as Error).message });
+      console.error('[UPLOAD_IMAGE_ERROR]', error);
+      return res.status(500).json({ message: 'Lỗi server khi upload file.' });
     }
   }
   public getLatestImage = async (req: Request, res: Response): Promise<Response> => {
@@ -156,7 +164,8 @@ class AdminController {
       });
 
     } catch (error) {
-      return res.status(500).json({ message: 'Lỗi server khi lấy hình ảnh.', error: (error as Error).message });
+      console.error('[GET_LATEST_IMAGE_ERROR]', error);
+      return res.status(500).json({ message: 'Lỗi server khi lấy hình ảnh.' });
     }
   }
 }

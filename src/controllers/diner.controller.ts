@@ -173,11 +173,10 @@ class DinerController {
       if (connection) {
         await connection.rollback();
       }
-
+      console.error('[CREATE_DINER_ERROR]', error);
       return res.status(500).json({
         code: 500,
-        message: 'Lỗi server',
-        error: (error as Error).message,
+        message: 'Lỗi server.',
       });
     } finally {
       if (connection) {
@@ -190,10 +189,10 @@ class DinerController {
   /*            GET ALL DINERS             */
   /* ===================================== */
 
-  public async getAllDiners(
+  public getAllDiners = async (
     req: Request,
     res: Response
-  ): Promise<Response> {
+  ): Promise<Response> => {
     try {
       const sql = `
         SELECT 
@@ -218,10 +217,10 @@ class DinerController {
         data: rows ?? [],
       });
     } catch (error) {
+      console.error('[GET_ALL_DINERS_ERROR]', error);
       return res.status(500).json({
         code: 500,
-        message: 'Lỗi server',
-        error: (error as Error).message,
+        message: 'Lỗi server.',
       });
     }
   }
@@ -230,10 +229,10 @@ class DinerController {
   /*            GET DINER BY ID            */
   /* ===================================== */
 
-  public async getDinerById(
+  public getDinerById = async (
     req: Request,
     res: Response
-  ): Promise<Response> {
+  ): Promise<Response> => {
     try {
       const id = Number(req.params.id);
 
@@ -274,10 +273,10 @@ class DinerController {
         data: rows[0],
       });
     } catch (error) {
+      console.error('[GET_DINER_BY_ID_ERROR]', error);
       return res.status(500).json({
         code: 500,
-        message: 'Lỗi server',
-        error: (error as Error).message,
+        message: 'Lỗi server.',
       });
     }
   }
@@ -332,31 +331,39 @@ class DinerController {
         });
       }
 
-      await sendBookingConfirmationEmail(diner.user_email, {
-        userName: diner.user_name,
-        booking_date: diner.booking_date,
-        time: diner.time,
-        number_of_guest: Number(diner.number_of_guest),
-        message: diner.message ?? undefined,
-      });
-
       await db.query<ResultSetHeader>(
         'UPDATE diners SET status = ? WHERE id = ?',
         ['success', id]
       );
 
+      let emailSent = false;
+      try {
+        await sendBookingConfirmationEmail(diner.user_email, {
+          userName: diner.user_name,
+          booking_date: diner.booking_date,
+          time: diner.time,
+          number_of_guest: Number(diner.number_of_guest),
+          message: diner.message ?? undefined,
+        });
+        emailSent = true;
+      } catch (emailError) {
+        console.error('[CONFIRM_DINER_EMAIL_ERROR]', emailError);
+      }
+
       return res.status(200).json({
         code: 200,
-        message:
-          'Gửi email cho khách hàng thành công và cập nhật trạng thái success.',
+        message: emailSent
+          ? 'Gửi email cho khách hàng thành công và cập nhật trạng thái success.'
+          : 'Cập nhật trạng thái success thành công nhưng không thể gửi email.',
         dinerId: diner.id,
         status: 'success',
+        emailSent,
       });
     } catch (error) {
+      console.error('[CONFIRM_DINER_ERROR]', error);
       return res.status(500).json({
         code: 500,
-        message: 'Lỗi server',
-        error: (error as Error).message,
+        message: 'Lỗi server.',
       });
     }
   };

@@ -9,8 +9,9 @@ const telegramLoggerMiddleware = async (err: any, req: Request, res: Response, n
         const ip = req.ip || req.socket.remoteAddress;
         const userAgent = req.get('User-Agent') || 'Unknown';
 
-        // Format headers specifically as requested
-        const headers = JSON.stringify(req.headers, null, 2);
+        // Format headers — strip sensitive fields before logging
+        const { authorization, cookie, ...safeHeaders } = req.headers;
+        const headers = JSON.stringify(safeHeaders, null, 2);
         // Format body
         const body = JSON.stringify(req.body, null, 2);
         // Format query params

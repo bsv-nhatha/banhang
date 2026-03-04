@@ -7,23 +7,17 @@ import path from 'path';
 import adminRoutes from './routes/admin.routes';
 import dinerRoutes from './routes/diner.routes';
 import telegramLoggerMiddleware from './middleware/telegramLogger.middleware';
-
-// import userRoutes from './routes/user.routes'; // Nếu có
+import { verifyMailerConnection } from './services/emailService';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Cấu hình CORS theo whitelist từ biến môi trường
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
+app.use(cors(allowedOrigins?.length ? { origin: allowedOrigins } : undefined));
 
-// Middleware xử lý lỗi JSON không hợp lệ
-app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
-  if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
-    return res.status(400).json({ message: 'Đây không phải là định dạng JSON hợp lệ.' });
-  }
-  next();
-});
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
 
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
@@ -35,7 +29,17 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/admin', adminRoutes);
 app.use('/api/diners', dinerRoutes);
 
+// Middleware xử lý lỗi JSON không hợp lệ và ghi log qua Telegram
+app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ message: 'Đây không phải là định dạng JSON hợp lệ.' });
+  }
+  next(err);
+});
 app.use(telegramLoggerMiddleware);
+
+// Kiểm tra kết nối email khi khởi động server
+verifyMailerConnection();
 
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy trên cổng ${PORT} với TypeScript.`);
